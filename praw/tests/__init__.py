@@ -586,6 +586,9 @@ class FlairTest(unittest.TestCase, AuthenticatedHelper):
         self.subreddit.delete_flair(flair['user'])
         self.assertTrue(flair not in self.subreddit.get_flair_list())
 
+    def test_get_flair_templates(self):
+        print(self.r.get_flair_templates(self.sr, self.r.user))
+
     def test_flair_csv_and_flair_list(self):
         # Clear all flair
         self.subreddit.clear_all_flair()

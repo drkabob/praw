@@ -85,6 +85,7 @@ class Config(object):  # pylint: disable-msg=R0903
                  'flairconfig':         'api/flairconfig/',
                  'flaircsv':            'api/flaircsv/',
                  'flairlist':           'r/%s/api/flairlist/',
+                 'flairselector':       'api/flairselector/',
                  'flairtemplate':       'api/flairtemplate/',
                  'friend':              'api/friend/',
                  'friends':             'prefs/friends/',
@@ -596,7 +597,7 @@ class UnauthenticatedReddit(BaseReddit):
 
         """
         if bool(url) == bool(thing_id):
-            raise TypeError('Only one of url or thing_id is required!')
+            raise TypeError('Only one of url or thing_id is required.')
         elif thing_id and limit:
             raise TypeError('Limit keyword is not applicable with thing_id.')
         if url:
@@ -651,7 +652,7 @@ class UnauthenticatedReddit(BaseReddit):
 
         """
         if bool(url) == bool(submission_id):
-            raise TypeError('One (and only one) of id or url is required!')
+            raise TypeError('One (and only one) of id or url is required.')
         if submission_id:
             url = urljoin(self.config['comments'], submission_id)
         return objects.Submission.from_url(self, url,
@@ -915,7 +916,7 @@ class AuthenticatedReddit(OAuth2Reddit, UnauthenticatedReddit):
 
         """
         if not isinstance(scope, set):
-            raise TypeError('`scope` parameter must be a set')
+            raise TypeError('`scope` parameter must be a set.')
         self.clear_authentication()
         # Update authentication settings
         self._authentication = scope
@@ -1292,6 +1293,17 @@ class ModOnlyMixin(AuthenticatedReddit):
                                  six.text_type(subreddit))
 
     @decorators.restrict_access(scope=None, mod=True)
+    def get_flair_templates(self, subreddit, user=None, link=None):
+        if bool(user) == bool(link):
+            raise TypeError('One (and only one) of user and link is required.')
+        data = {'r': six.text_type(subreddit)}
+        if user:
+            data['name'] = six.text_type(user)
+        else:
+            data['link'] = None  # TODO: Set this properly
+        return self._request(self.config['flairselector'], data=data)
+
+    @decorators.restrict_access(scope=None, mod=True)
     def get_mod_queue(self, subreddit='mod', limit=0, *args, **kwargs):
         """Return a get_content_generator for the  moderator queue."""
         return self.get_content(self.config['modqueue'] %
@@ -1461,7 +1473,7 @@ class SubmitMixin(AuthenticatedReddit):
 
         """
         if bool(text) == bool(url):
-            raise TypeError('One (and only one) of text or url is required!')
+            raise TypeError('One (and only one) of text or url is required.')
         data = {'sr': six.text_type(subreddit),
                 'title': title}
         if text:
