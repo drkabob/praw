@@ -1292,15 +1292,17 @@ class ModOnlyMixin(AuthenticatedReddit):
         return self.request_json(self.config['contributors'] %
                                  six.text_type(subreddit))
 
-    @decorators.restrict_access(scope=None, mod=True)
-    def get_flair_templates(self, subreddit, user=None, link=None):
+    @decorators.restrict_access(scope=None, login=True)
+    def get_flair_templates(self, subreddit=None, user=None, link=None):
         if bool(user) == bool(link):
             raise TypeError('One (and only one) of user and link is required.')
-        data = {'r': six.text_type(subreddit)}
+        elif bool(user) and not bool(subreddit):
+            raise TypeError('`subreddit` is required when providing `user`.')
         if user:
-            data['name'] = six.text_type(user)
+            data = {'name': six.text_type(user),
+                    'r': six.text_type(subreddit)}
         else:
-            data['link'] = None  # TODO: Set this properly
+            data = {'link': link.fullname}
         return self._request(self.config['flairselector'], data=data)
 
     @decorators.restrict_access(scope=None, mod=True)
